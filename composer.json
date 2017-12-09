@@ -8,7 +8,8 @@
         "cms",
         "craftcms",
         "craft-plugin",
-        "child me!"
+        "child me!",
+        "child me"
     ],
     "support": {
         "docs": "https://github.com/mmikkel/ChildMe-Craft/blob/master/README.md",
