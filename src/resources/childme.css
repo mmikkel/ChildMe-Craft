@@ -1,0 +1,4 @@
+label#entryType-label,
+select#entryType {
+  font-weight: bold;
+}
