@@ -20,6 +20,8 @@ use craft\events\SetElementTableAttributeHtmlEvent;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\records\EntryType as EntryTypeRecord;
+use craft\services\Plugins;
+use craft\web\View;
 
 use yii\base\Event;
 
@@ -59,8 +61,15 @@ class ChildMe extends Plugin
             return;
         }
 
-        $this->registerResources();
-        $this->addElementTableAttributes();
+        // Handler: EVENT_AFTER_LOAD_PLUGINS
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_LOAD_PLUGINS,
+            function () {
+                $this->addElementTableAttributes();
+                $this->registerResources();
+            }
+        );
 
         Craft::info(
             Craft::t(
@@ -74,23 +83,33 @@ class ChildMe extends Plugin
 
     // Protected Methods
     // =========================================================================
-
     /**
      *
      */
     protected function registerResources()
     {
-        $entryTypes = EntryTypeRecord::find()->all();
-
-        $data = [];
-        foreach ($entryTypes as $entryType) {
-            $section = $entryType->section->handle;
-            if (!isset($data[$section])) $data[$section] = [];
-            $data[$section][$entryType->id] = $entryType->name;
-        }
-
-        Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
-        Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
+        Event::on(
+            View::class,
+            View::EVENT_BEFORE_RENDER_TEMPLATE,
+            function () {
+                try {
+                    $entryTypes = EntryTypeRecord::find()->all();
+                    $data = [];
+                    foreach ($entryTypes as $entryType) {
+                        $section = $entryType->section->handle;
+                        if (!isset($data[$section])) $data[$section] = [];
+                        $data[$section][$entryType->id] = $entryType->name;
+                    }
+                    Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
+                    Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
+                } catch (InvalidConfigException $e) {
+                    Craft::error(
+                        'Error registering AssetBundle - ' . $e->getMessage(),
+                        __METHOD__
+                    );
+                }
+            }
+        );
     }
 
     /**
