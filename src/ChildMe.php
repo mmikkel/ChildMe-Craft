@@ -98,7 +98,7 @@ class ChildMe extends Plugin
                     foreach ($entryTypes as $entryType) {
                         $section = $entryType->section->handle;
                         if (!isset($data[$section])) $data[$section] = [];
-                        $data[$section][$entryType->id] = $entryType->name;
+                        $data[$section][$entryType->id] = Craft::t('site', $entryType->name);
                     }
                     Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
                     Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
