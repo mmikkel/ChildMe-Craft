@@ -28,7 +28,13 @@
 
     Craft.ChildMePlugin = {
 
+        initialized: false,
+
         init: function (data) {
+            if (this.initialized) {
+                return;
+            }
+            this.initialized = true;
             this.data = data || {};
             this.addEventListeners();
         },
@@ -139,36 +145,36 @@
         onDragStop: function (tableSorter) {
 
             var $items = tableSorter.$items;
-            $items.find('[data-childmeadd]')
-            //.removeAttr('aria-hidden')
-            //.removeAttr('tabindex')
-                .show()
+            $items.find('[data-childmeadd]').show();
 
             var maxLevels = tableSorter.maxLevels;
             if (!maxLevels) return false;
 
             var $hiddenItems = $items.filter(function () {
                 return $(this).data('level') >= maxLevels;
-            }).find('[data-childmeadd]')
-            //.attr('aria-hidden', 'true')
-            //.attr('tabindex', '-1')
-                .hide();
+            }).find('[data-childmeadd]').hide();
 
+        },
+
+        onDocClick: function (e) {
+            if (!$(e.target).closest('[data-childmeadd]').length) {
+                this.closeActiveEntryTypeMenu();
+            }
         },
 
         addEventListeners: function () {
             Garnish.$doc
                 .on('focus', '[data-childmeadd]', this.onChildMeButtonClick.bind(this))
-                .on('blur', '[data-childmeadd]', (function (e) {
-                    this.closeActiveEntryTypeMenu();
-                }).bind(this))
-                .on('click', '[data-childmeadd] a', this.onEntryTypeOptionSelect.bind(this));
+                .on('blur', '[data-childmeadd]', this.closeActiveEntryTypeMenu.bind(this))
+                .on('click', '[data-childmeadd] a', this.onEntryTypeOptionSelect.bind(this))
+                .on('click', this.onDocClick.bind(this));
         },
 
         removeEventListeners: function () {
             Garnish.$doc
                 .off('focus blur', '[data-childmeadd]')
-                .off('click', '[data-childmeadd] a');
+                .off('click', '[data-childmeadd] a')
+                .off('click', this.onDocClick.bind(this))
         }
 
     }
