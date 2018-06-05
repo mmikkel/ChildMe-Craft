@@ -66,6 +66,11 @@
             }
         },
 
+        getSiteHandle: function () {
+            var siteId = Craft.getLocalStorage('BaseElementIndex.siteId');
+            return this.data['sites']['site:' + siteId] || null;
+        },
+
         createEntryTypeButtons: function () {
 
             if (this.entryTypeButtons) {
@@ -83,14 +88,19 @@
                 $button = $(this);
 
                 var sectionHandle = $button.data('section') || null;
-                if (!sectionHandle) return false;
+                if (!sectionHandle) {
+                    return false;
+                }
 
-                var entryTypes = _self.data[sectionHandle] || {};
+                var entryTypes = _self.data['entryTypes'][sectionHandle] || {};
                 var entryTypeIds = Object.keys(entryTypes);
-                if (entryTypeIds.length <= 1) return false;
+                if (entryTypeIds.length <= 1) {
+                    return false;
+                }
 
                 var menuHtml = '<div class="menu" data-align="center"><ul>';
                 var menuOptions = [];
+                var href;
 
                 for (var j = 0; j < entryTypeIds.length; ++j) {
                     menuOptions.push('<li><a data-type="' + entryTypeIds[j] + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + '">' + entryTypes[entryTypeIds[j]] + '</a></li>');
@@ -115,7 +125,12 @@
             e.preventDefault();
             e.stopPropagation();
             var $option = $(e.currentTarget);
-            var url = Craft.getCpUrl(['entries', $option.data('section'), 'new'].join('/'), {
+            var siteHandle = this.getSiteHandle();
+            var segments = ['entries', $option.data('section'), 'new'];
+            if (siteHandle) {
+                segments.push(siteHandle);
+            }
+            var url = Craft.getCpUrl(segments.join('/'), {
                 typeId: $option.data('type'),
                 parentId: $option.data('parent')
             });
@@ -130,7 +145,7 @@
             }
         },
 
-        onChildMeButtonClick: function (e) {
+        onChildMeButtonFocus: function (e) {
             this.closeActiveEntryTypeMenu();
             var $target = $(e.currentTarget);
             var menu = $target.data('_childmemenu');
@@ -140,6 +155,24 @@
                 this.openEntryTypeMenu = menu;
                 menu.show();
             }
+        },
+
+        onChildMeButtonClick: function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var $target = $(e.currentTarget);
+            var menu = $target.data('_childmemenu');
+            if (menu) {
+                return false;
+            }
+            var url = $target.attr('href');
+            var siteId = Craft.getLocalStorage('BaseElementIndex.siteId');
+            var siteHandle = this.data['sites']['site:' + siteId] || null;
+            if (siteHandle) {
+                url = url.split('?');
+                url = url[0] + '/' + siteHandle + '?' + url[1];
+            }
+            window.location.href = url;
         },
 
         onDragStop: function (tableSorter) {
@@ -164,7 +197,8 @@
 
         addEventListeners: function () {
             Garnish.$doc
-                .on('focus', '[data-childmeadd]', this.onChildMeButtonClick.bind(this))
+                .on('focus', '[data-childmeadd]', this.onChildMeButtonFocus.bind(this))
+                .on('click', '[data-childmeadd]', this.onChildMeButtonClick.bind(this))
                 .on('blur', '[data-childmeadd]', this.closeActiveEntryTypeMenu.bind(this))
                 .on('click', '[data-childmeadd] a', this.onEntryTypeOptionSelect.bind(this))
                 .on('click', this.onDocClick.bind(this));
@@ -172,7 +206,7 @@
 
         removeEventListeners: function () {
             Garnish.$doc
-                .off('focus blur', '[data-childmeadd]')
+                .off('focus blur click', '[data-childmeadd]')
                 .off('click', '[data-childmeadd] a')
                 .off('click', this.onDocClick.bind(this))
         }

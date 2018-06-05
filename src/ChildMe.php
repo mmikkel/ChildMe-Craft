@@ -93,12 +93,25 @@ class ChildMe extends Plugin
             View::EVENT_BEFORE_RENDER_TEMPLATE,
             function () {
                 try {
+                    $data = [
+                        'entryTypes' => [],
+                        'sites' => [],
+                    ];
+                    // Map section and entry type IDs to entry type names
                     $entryTypes = EntryTypeRecord::find()->all();
-                    $data = [];
                     foreach ($entryTypes as $entryType) {
                         $section = $entryType->section->handle;
-                        if (!isset($data[$section])) $data[$section] = [];
-                        $data[$section][$entryType->id] = Craft::t('site', $entryType->name);
+                        if (!isset($data['entryTypes'][$section])) {
+                            $data['entryTypes'][$section] = [];
+                        }
+                        $data['entryTypes'][$section][$entryType->id] = Craft::t('site', $entryType->name);
+                    }
+                    // Map site IDs to site handles
+                    $sites = Craft::$app->getSites()->getAllSites();
+                    foreach ($sites as $site) {
+                        if (!$site->primary) {
+                            $data['sites']['site:' . $site->id] = $site->handle;
+                        }
                     }
                     Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
                     Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');

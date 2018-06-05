@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.4 - 2018-06-05
+### Fixed
+- Fixes an issue where adding child entries in a multi-site install would always create children for the primary site
+
 ## 1.0.3 - 2018-05-23
 ### Improved
 - Child Me! quickmenu now closes immediately when clicking outside the container
