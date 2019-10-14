@@ -100,11 +100,13 @@ class ChildMe extends Plugin
                     // Map section and entry type IDs to entry type names
                     $entryTypes = EntryTypeRecord::find()->all();
                     foreach ($entryTypes as $entryType) {
-                        $section = $entryType->section->handle;
-                        if (!isset($data['entryTypes'][$section])) {
-                            $data['entryTypes'][$section] = [];
+                        if (property_exists($entryType,'section')) {
+                            $section = $entryType->section->handle;
+                            if (!isset($data['entryTypes'][$section])) {
+                                $data['entryTypes'][$section] = [];
+                            }
+                            $data['entryTypes'][$section][$entryType->id] = Craft::t('site', $entryType->name);
                         }
-                        $data['entryTypes'][$section][$entryType->id] = Craft::t('site', $entryType->name);
                     }
                     // Map site IDs to site handles
                     $sites = Craft::$app->getSites()->getAllSites();
