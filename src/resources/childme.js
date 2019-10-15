@@ -100,10 +100,15 @@
 
                 var menuHtml = '<div class="menu" data-align="center"><ul>';
                 var menuOptions = [];
+                var typeId;
                 var href;
 
                 for (var j = 0; j < entryTypeIds.length; ++j) {
-                    menuOptions.push('<li><a data-type="' + entryTypeIds[j] + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + '">' + entryTypes[entryTypeIds[j]] + '</a></li>');
+                    typeId = parseInt(entryTypeIds[j].split(':').pop(), 10);
+                    if (!typeId || isNaN(typeId)) {
+                        continue;
+                    }
+                    menuOptions.push('<li><a data-type="' + typeId + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + '">' + entryTypes[entryTypeIds[j]] + '</a></li>');
                 }
 
                 menuHtml += menuOptions.join('') + '</ul></div>';

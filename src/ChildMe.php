@@ -19,6 +19,7 @@ use craft\events\RegisterElementTableAttributesEvent;
 use craft\events\SetElementTableAttributeHtmlEvent;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+use craft\models\EntryType;
 use craft\records\EntryType as EntryTypeRecord;
 use craft\services\Plugins;
 use craft\web\View;
@@ -98,13 +99,12 @@ class ChildMe extends Plugin
                         'sites' => [],
                     ];
                     // Map section and entry type IDs to entry type names
-                    $entryTypes = EntryTypeRecord::find()->all();
-                    foreach ($entryTypes as $entryType) {
-                        $section = $entryType->section->handle;
-                        if (!isset($data['entryTypes'][$section])) {
-                            $data['entryTypes'][$section] = [];
-                        }
-                        $data['entryTypes'][$section][$entryType->id] = Craft::t('site', $entryType->name);
+                    $sections = Craft::$app->getSections()->getAllSections();
+                    foreach ($sections as $section) {
+                        $data['entryTypes'][$section->handle] = \array_reduce($section->getEntryTypes(), function (array $carry, EntryType $entryType) {
+                            $carry["id:{$entryType->id}"] = Craft::t('site', $entryType->name);
+                            return $carry;
+                        }, []);
                     }
                     // Map site IDs to site handles
                     $sites = Craft::$app->getSites()->getAllSites();
