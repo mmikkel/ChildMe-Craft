@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.5 - 2019-10-15
+### Fixed
+- Fixes an issue where sort order was not respected for entry types. Fixes #2
+## Improved
+- Reduces number of database queries in the Control Panel
+
 ## 1.0.4 - 2018-06-05
 ### Fixed
 - Fixes an issue where adding child entries in a multi-site install would always create children for the primary site
