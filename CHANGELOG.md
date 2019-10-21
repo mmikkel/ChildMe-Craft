@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.6 - 2019-10-21
+### Fixed
+- Fixes an issue where Child Me! could conflict with other plugins
+
 ## 1.0.5 - 2019-10-15
 ### Fixed
 - Fixes an issue where sort order was not respected for entry types. Fixes #2

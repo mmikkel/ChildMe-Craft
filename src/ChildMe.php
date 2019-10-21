@@ -55,10 +55,9 @@ class ChildMe extends Plugin
         parent::init();
         self::$plugin = $this;
 
-        $user = Craft::$app->getUser();
         $request = Craft::$app->getRequest();
 
-        if (!$user || !$user->id || !$request->getIsCpRequest() || $request->getIsConsoleRequest()) {
+        if (!$request->getIsCpRequest() || $request->getIsConsoleRequest()) {
             return;
         }
 
@@ -67,8 +66,7 @@ class ChildMe extends Plugin
             Plugins::class,
             Plugins::EVENT_AFTER_LOAD_PLUGINS,
             function () {
-                $this->addElementTableAttributes();
-                $this->registerResources();
+                $this->doIt();
             }
         );
 
@@ -87,6 +85,16 @@ class ChildMe extends Plugin
     /**
      *
      */
+    protected function doIt()
+    {
+        $user = Craft::$app->getUser();
+        if (!$user->id) {
+            return;
+        }
+        $this->addElementTableAttributes();
+        $this->registerResources();
+    }
+
     protected function registerResources()
     {
         Event::on(
