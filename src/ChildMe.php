@@ -168,10 +168,20 @@ class ChildMe extends Plugin
                             $maxLevels = $entry->section->maxLevels;
                             $visible = !$maxLevels || $entry->level < $maxLevels;
 
-                            $newUrl = UrlHelper::cpUrl(implode('/', ['entries', $entry->section->handle, 'new']), [
+                            $variables = [
                                 'typeId' => $entry->type->id,
                                 'parentId' => $entry->id,
-                            ]);
+                            ];
+
+                            if (Craft::$app->getIsMultiSite()) {
+                                $siteId = $entry->siteId ?? null;
+                                $site = $siteId ? Craft::$app->getSites()->getSiteById($siteId) : null;
+                                if ($site) {
+                                    $variables['site'] = $site->handle;
+                                }
+                            }
+
+                            $newUrl = UrlHelper::cpUrl(implode('/', ['entries', $entry->section->handle, 'new']), $variables);
 
                             $html = $this->getElementTableAttributeHtml($newUrl, $visible, [
                                 'data-section="' . $entry->section->handle . '"',
@@ -185,9 +195,19 @@ class ChildMe extends Plugin
                             $maxLevels = $category->group->maxLevels;
                             $visible = !$maxLevels || $category->level < $maxLevels;
 
-                            $newUrl = UrlHelper::cpUrl(implode('/', ['categories', $category->group->handle, 'new']), [
+                            $variables = [
                                 'parentId' => $category->id,
-                            ]);
+                            ];
+
+                            if (Craft::$app->getIsMultiSite()) {
+                                $siteId = $category->siteId ?? null;
+                                $site = $siteId ? Craft::$app->getSites()->getSiteById($siteId) : null;
+                                if ($site) {
+                                    $variables['site'] = $site->handle;
+                                }
+                            }
+
+                            $newUrl = UrlHelper::cpUrl(implode('/', ['categories', $category->group->handle, 'new']), $variables);
 
                             $html = $this->getElementTableAttributeHtml($newUrl, $visible);
 

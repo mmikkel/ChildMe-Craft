@@ -132,13 +132,14 @@
             var $option = $(e.currentTarget);
             var siteHandle = this.getSiteHandle();
             var segments = ['entries', $option.data('section'), 'new'];
-            if (siteHandle) {
-                segments.push(siteHandle);
-            }
-            var url = Craft.getCpUrl(segments.join('/'), {
+            var variables = {
                 typeId: $option.data('type'),
-                parentId: $option.data('parent')
-            });
+                parentId: $option.data('parent'),
+            };
+            if (siteHandle) {
+                variables.site = siteHandle;
+            }
+            var url = Craft.getCpUrl(segments.join('/'), variables);
             window.location.href = url;
             this.closeActiveEntryTypeMenu();
         },
