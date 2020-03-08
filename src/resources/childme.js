@@ -98,10 +98,9 @@
                     return false;
                 }
 
-                var menuHtml = '<div class="menu" data-align="center"><ul>';
+                var menuHtml = '<div class="menu" data-align="center" style="position:fixed;"><ul>';
                 var menuOptions = [];
                 var typeId;
-                var href;
 
                 for (var j = 0; j < entryTypeIds.length; ++j) {
                     typeId = parseInt(entryTypeIds[j].split(':').pop(), 10);
@@ -151,6 +150,24 @@
             }
         },
 
+        positionMenu: function (menu) {
+            if (!menu) {
+                return;
+            }
+            var $menu = $(menu);
+            var $anchor = $menu.parent('a[data-childmeadd]');
+            if (!$anchor.length) {
+                return;
+            }
+            var rect = $anchor.get(0).getBoundingClientRect();
+            var top = rect.height + rect.top;
+            var left = rect.left;
+            $menu.css({
+                top: top,
+                left: left
+            });
+        },
+
         onChildMeButtonFocus: function (e) {
             this.closeActiveEntryTypeMenu();
             var $target = $(e.currentTarget);
@@ -159,6 +176,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 this.openEntryTypeMenu = menu;
+                this.positionMenu(menu);
                 menu.show();
             }
         },
@@ -187,9 +205,11 @@
             $items.find('[data-childmeadd]').show();
 
             var maxLevels = tableSorter.maxLevels;
-            if (!maxLevels) return false;
+            if (!maxLevels) {
+                return false
+            };
 
-            var $hiddenItems = $items.filter(function () {
+            $items.filter(function () {
                 return $(this).data('level') >= maxLevels;
             }).find('[data-childmeadd]').hide();
 
@@ -201,13 +221,22 @@
             }
         },
 
+        onDocScroll: function (e) {
+            // If there's a menu open, anchor it to the... anchor.
+            if (!this.openEntryTypeMenu) {
+                return;
+            }
+            this.positionMenu(this.openEntryTypeMenu);
+        },
+
         addEventListeners: function () {
             Garnish.$doc
                 .on('focus', '[data-childmeadd]', this.onChildMeButtonFocus.bind(this))
                 .on('click', '[data-childmeadd]', this.onChildMeButtonClick.bind(this))
                 .on('blur', '[data-childmeadd]', this.closeActiveEntryTypeMenu.bind(this))
                 .on('click', '[data-childmeadd] a', this.onEntryTypeOptionSelect.bind(this))
-                .on('click', this.onDocClick.bind(this));
+                .on('click', this.onDocClick.bind(this))
+                .on('scroll', this.onDocScroll.bind(this));
         },
 
         removeEventListeners: function () {
@@ -215,6 +244,7 @@
                 .off('focus blur click', '[data-childmeadd]')
                 .off('click', '[data-childmeadd] a')
                 .off('click', this.onDocClick.bind(this))
+                .off('scroll', this.onDocScroll.bind(this));
         }
 
     }
