@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.0 - 2020-03-08
+### Fixed
+- Fixes an issue where entry type menus could be cut off on Craft 3.4+
+- Fixes issues with multi-site on Craft 3.2+
+### Changed
+- Child Me! now requires Craft 3.2.0
+
 ## 1.0.6 - 2019-10-21
 ### Fixed
 - Fixes an issue where Child Me! could conflict with other plugins
