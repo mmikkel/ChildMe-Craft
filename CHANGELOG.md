@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.1 - 2020-05-05
+### Fixed
+- Fixes an issue where entry type menus would not be displayed for entries loaded in with AJAX on paginated entry indexes
+- Fixes an issue where Child Me! could redirect to the wrong URL for multi-site installs
+
 ## 1.1.0 - 2020-03-08
 ### Fixed
 - Fixes an issue where entry type menus could be cut off on Craft 3.4+

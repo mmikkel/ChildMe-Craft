@@ -121,6 +121,7 @@ class ChildMe extends Plugin
                             $data['sites']['site:' . $site->id] = $site->handle;
                         }
                     }
+                    $data['isCraft34'] = \version_compare(Craft::$app->getVersion(), '3.4.0', '>=');
                     Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
                     Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
                 } catch (InvalidConfigException $e) {

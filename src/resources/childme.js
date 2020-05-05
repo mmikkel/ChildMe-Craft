@@ -43,8 +43,6 @@
             this.elementIndex = elementIndex;
             if (elementIndex.settings.context === 'modal') {
                 this.hideButtons();
-            } else {
-                this.createEntryTypeButtons();
             }
         },
 
@@ -62,7 +60,6 @@
                 this.hideButtons();
             } else {
                 this.showButtons();
-                this.createEntryTypeButtons();
             }
         },
 
@@ -71,58 +68,47 @@
             return this.data['sites']['site:' + siteId] || null;
         },
 
-        createEntryTypeButtons: function () {
+        createEntryTypeMenu: function ($button) {
 
-            if (this.entryTypeButtons) {
-                for (var i = 0; i < this.entryTypeButtons.length; ++i) {
-                    this.entryTypeButtons[i].destroy();
-                }
+            var sectionHandle = $button.data('section') || null;
+            if (!sectionHandle) {
+                return null;
             }
 
-            var _self = this;
-            var entryTypeButtons = [];
-            var $button;
+            var entryTypes = this.data['entryTypes'][sectionHandle] || {};
+            var entryTypeIds = Object.keys(entryTypes);
+            if (entryTypeIds.length <= 1) {
+                return null;
+            }
 
-            $('[data-childmeadd]').each(function () {
+            var menuHtml = '<div class="menu" data-align="center" style="z-index:1;"><ul>';
+            var menuOptions = [];
+            var typeId;
 
-                $button = $(this);
-
-                var sectionHandle = $button.data('section') || null;
-                if (!sectionHandle) {
-                    return false;
+            for (var j = 0; j < entryTypeIds.length; ++j) {
+                typeId = parseInt(entryTypeIds[j].split(':').pop(), 10);
+                if (!typeId || isNaN(typeId)) {
+                    continue;
                 }
+                menuOptions.push('<li><a data-type="' + typeId + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + '" tabindex="0">' + entryTypes[entryTypeIds[j]] + '</a></li>');
+            }
 
-                var entryTypes = _self.data['entryTypes'][sectionHandle] || {};
-                var entryTypeIds = Object.keys(entryTypes);
-                if (entryTypeIds.length <= 1) {
-                    return false;
-                }
+            menuHtml += menuOptions.join('') + '</ul></div>';
 
-                var menuHtml = '<div class="menu" data-align="center" style="position:fixed;"><ul>';
-                var menuOptions = [];
-                var typeId;
+            $button
+                .data('_childmemenu', $(menuHtml).appendTo($button))
+                .removeAttr('title');
 
-                for (var j = 0; j < entryTypeIds.length; ++j) {
-                    typeId = parseInt(entryTypeIds[j].split(':').pop(), 10);
-                    if (!typeId || isNaN(typeId)) {
-                        continue;
-                    }
-                    menuOptions.push('<li><a data-type="' + typeId + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + '">' + entryTypes[entryTypeIds[j]] + '</a></li>');
-                }
+            return new Garnish.MenuBtn($button);
+        },
 
-                menuHtml += menuOptions.join('') + '</ul></div>';
-
-                $button
-                    .data('_childmemenu', $(menuHtml).appendTo($button))
-                    .removeAttr('title')
-                    .removeAttr('href');
-
-                entryTypeButtons.push(new Garnish.MenuBtn($button));
-
-            });
-
-            this.entryTypeButtons = entryTypeButtons;
-
+        getEntryTypeMenu: function ($button) {
+            var menu = $button.data('_childmemenu');
+            if (menu === undefined) {
+                this.createEntryTypeMenu($button);
+                return $button.data('_childmemenu');
+            }
+            return menu;
         },
 
         onEntryTypeOptionSelect: function (e) {
@@ -144,14 +130,16 @@
         },
 
         closeActiveEntryTypeMenu: function () {
-            if (this.openEntryTypeMenu) {
-                this.openEntryTypeMenu.hide();
-                this.openEntryTypeMenu = null;
+            if (!this.openEntryTypeMenu) {
+                return;
             }
+            this.openEntryTypeMenu.hide();
+            this.openEntryTypeMenu = null;
         },
 
+        // Position a fixed menu relative to the trigger – only relevant for Craft 3.4+
         positionMenu: function (menu) {
-            if (!menu) {
+            if (!menu || !this.data.isCraft34) {
                 return;
             }
             var $menu = $(menu);
@@ -164,14 +152,15 @@
             var left = rect.left;
             $menu.css({
                 top: top,
-                left: left
+                left: left,
+                position: 'fixed'
             });
         },
 
         onChildMeButtonFocus: function (e) {
             this.closeActiveEntryTypeMenu();
-            var $target = $(e.currentTarget);
-            var menu = $target.data('_childmemenu');
+            var $button = $(e.currentTarget);
+            var menu = this.getEntryTypeMenu($button);
             if (menu) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -182,21 +171,16 @@
         },
 
         onChildMeButtonClick: function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var $target = $(e.currentTarget);
-            var menu = $target.data('_childmemenu');
+            this.closeActiveEntryTypeMenu();
+            var $button = $(e.currentTarget);
+            var menu = this.getEntryTypeMenu($button);
             if (menu) {
-                return false;
+                e.preventDefault();
+                e.stopPropagation();
+                this.openEntryTypeMenu = menu;
+                this.positionMenu(menu);
+                menu.show();
             }
-            var url = $target.attr('href');
-            var siteId = Craft.getLocalStorage('BaseElementIndex.siteId');
-            var siteHandle = this.data['sites']['site:' + siteId] || null;
-            if (siteHandle) {
-                url = url.split('?');
-                url = url[0] + '/' + siteHandle + '?' + url[1];
-            }
-            window.location.href = url;
         },
 
         onDragStop: function (tableSorter) {
