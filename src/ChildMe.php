@@ -160,6 +160,7 @@ class ChildMe extends Plugin
                     switch ($class) {
                         case 'craft\elements\Entry':
 
+                            /** @var Entry $entry */
                             $entry = $event->sender;
 
                             if ($entry->section->type !== 'structure') {
@@ -174,24 +175,25 @@ class ChildMe extends Plugin
                                 'parentId' => $entry->id,
                             ];
 
+                            $attributes = [
+                                'data-section="' . $entry->section->handle . '"',
+                                'data-id="' . $entry->id . '"',
+                            ];
+
                             if (Craft::$app->getIsMultiSite()) {
-                                $siteId = $entry->siteId ?? null;
-                                $site = $siteId ? Craft::$app->getSites()->getSiteById($siteId) : null;
-                                if ($site) {
-                                    $variables['site'] = $site->handle;
-                                }
+                                $site = $entry->getSite();
+                                $variables['site'] = $site->handle;
+                                $attributes[] = 'data-site="' . $site->handle . '"';
                             }
 
                             $newUrl = UrlHelper::cpUrl(implode('/', ['entries', $entry->section->handle, 'new']), $variables);
 
-                            $html = $this->getElementTableAttributeHtml($newUrl, $visible, [
-                                'data-section="' . $entry->section->handle . '"',
-                                'data-id="' . $entry->id . '"'
-                            ]);
+                            $html = $this->getElementTableAttributeHtml($newUrl, $visible, $attributes);
 
                             break;
                         case 'craft\elements\Category':
 
+                            /** @var Category $category */
                             $category = $event->sender;
                             $maxLevels = $category->group->maxLevels;
                             $visible = !$maxLevels || $category->level < $maxLevels;
@@ -200,15 +202,15 @@ class ChildMe extends Plugin
                                 'parentId' => $category->id,
                             ];
 
+                            $urlSegments = ['categories', $category->group->handle, 'new'];
+
                             if (Craft::$app->getIsMultiSite()) {
-                                $siteId = $category->siteId ?? null;
-                                $site = $siteId ? Craft::$app->getSites()->getSiteById($siteId) : null;
-                                if ($site) {
-                                    $variables['site'] = $site->handle;
-                                }
+                                $site = $category->getSite();
+                                $variables['site'] = $site->handle;
+                                $urlSegments[] = $site->handle;
                             }
 
-                            $newUrl = UrlHelper::cpUrl(implode('/', ['categories', $category->group->handle, 'new']), $variables);
+                            $newUrl = UrlHelper::cpUrl(implode('/', $urlSegments), $variables);
 
                             $html = $this->getElementTableAttributeHtml($newUrl, $visible);
 

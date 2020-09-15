@@ -4,26 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.2 - 2020-09-15  
+### Fixed     
+- Fixes an issue where Child Me! could fail to select the correct site on multisite installs, upon creating new categories or entries via the entry type menu  
+
 ## 1.1.1 - 2020-05-05
-### Fixed
-- Fixes an issue where entry type menus would not be displayed for entries loaded in with AJAX on paginated entry indexes
-- Fixes an issue where Child Me! could redirect to the wrong URL for multi-site installs
+### Fixed  
+- Fixes an issue where entry type menus would not be displayed for entries loaded in with AJAX on paginated entry indexes  
+- Fixes an issue where Child Me! could redirect to the wrong URL for multi-site installs  
 
 ## 1.1.0 - 2020-03-08
-### Fixed
-- Fixes an issue where entry type menus could be cut off on Craft 3.4+
-- Fixes issues with multi-site on Craft 3.2+
-### Changed
-- Child Me! now requires Craft 3.2.0
+### Fixed  
+- Fixes an issue where entry type menus could be cut off on Craft 3.4+  
+- Fixes issues with multi-site on Craft 3.2+  
+
+### Changed  
+- Child Me! now requires Craft 3.2.0  
 
 ## 1.0.6 - 2019-10-21
 ### Fixed
 - Fixes an issue where Child Me! could conflict with other plugins
 
 ## 1.0.5 - 2019-10-15
-### Fixed
-- Fixes an issue where sort order was not respected for entry types. Fixes #2
-## Improved
+### Fixed  
+- Fixes an issue where sort order was not respected for entry types. Fixes #2  
+
+## Improved  
 - Reduces number of database queries in the Control Panel
 
 ## 1.0.4 - 2018-06-05

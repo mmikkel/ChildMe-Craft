@@ -63,12 +63,9 @@
             }
         },
 
-        getSiteHandle: function () {
-            var siteId = Craft.getLocalStorage('BaseElementIndex.siteId');
-            return this.data['sites']['site:' + siteId] || null;
-        },
-
         createEntryTypeMenu: function ($button) {
+
+            console.log($button.data());
 
             var sectionHandle = $button.data('section') || null;
             if (!sectionHandle) {
@@ -85,12 +82,14 @@
             var menuOptions = [];
             var typeId;
 
+            var siteHandle = $button.data('site') || null;
+
             for (var j = 0; j < entryTypeIds.length; ++j) {
                 typeId = parseInt(entryTypeIds[j].split(':').pop(), 10);
                 if (!typeId || isNaN(typeId)) {
                     continue;
                 }
-                menuOptions.push('<li><a data-type="' + typeId + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + '" tabindex="0">' + entryTypes[entryTypeIds[j]] + '</a></li>');
+                menuOptions.push('<li><a data-type="' + typeId + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + (siteHandle ? '" data-site="' + siteHandle : '') + '" tabindex="0">' + entryTypes[entryTypeIds[j]] + '</a></li>');
             }
 
             menuHtml += menuOptions.join('') + '</ul></div>';
@@ -115,14 +114,13 @@
             e.preventDefault();
             e.stopPropagation();
             var $option = $(e.currentTarget);
-            var siteHandle = this.getSiteHandle();
             var segments = ['entries', $option.data('section'), 'new'];
             var variables = {
                 typeId: $option.data('type'),
                 parentId: $option.data('parent'),
             };
-            if (siteHandle) {
-                variables.site = siteHandle;
+            if ($option.data('site')) {
+                variables['site'] = $option.data('site');
             }
             var url = Craft.getCpUrl(segments.join('/'), variables);
             window.location.href = url;
