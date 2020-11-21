@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.2.0 - 2020-11-21  
+
+### Added  
+- Added a new `EVENT_DEFINE_ENTRY_TYPES` event, giving modules and plugins a chance to modify the available entry types in Child Me!'s entry type menu  
+
+### Changed  
+- The "Add child" button in entry indexes no longer defaults to each entry's own type, but the first available entry type for the entry's section  
+
 ## 1.1.2 - 2020-09-15  
 ### Fixed     
 - Fixes an issue where Child Me! could fail to select the correct site on multisite installs, upon creating new categories or entries via the entry type menu  

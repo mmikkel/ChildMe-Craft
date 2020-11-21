@@ -20,9 +20,10 @@ use craft\events\SetElementTableAttributeHtmlEvent;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
-use craft\records\EntryType as EntryTypeRecord;
 use craft\services\Plugins;
 use craft\web\View;
+
+use mmikkel\childme\events\DefineEntryTypesEvent;
 
 use yii\base\Event;
 
@@ -38,6 +39,12 @@ class ChildMe extends Plugin
 {
     // Static Properties
     // =========================================================================
+
+    /**
+     * @event DefineEntryTypesEvent The event that is triggered when defining the available entry types for a section
+     * @since 1.2.0
+     */
+    const EVENT_DEFINE_ENTRY_TYPES = 'defineEntryTypes';
 
     /**
      * @var ChildMe
@@ -95,6 +102,9 @@ class ChildMe extends Plugin
         $this->registerResources();
     }
 
+    /**
+     *
+     */
     protected function registerResources()
     {
         Event::on(
@@ -102,26 +112,34 @@ class ChildMe extends Plugin
             View::EVENT_BEFORE_RENDER_TEMPLATE,
             function () {
                 try {
-                    $data = [
-                        'entryTypes' => [],
-                        'sites' => [],
-                    ];
                     // Map section and entry type IDs to entry type names
+                    $entryTypesMap = [];
                     $sections = Craft::$app->getSections()->getAllSections();
                     foreach ($sections as $section) {
-                        $data['entryTypes'][$section->handle] = \array_reduce($section->getEntryTypes(), function (array $carry, EntryType $entryType) {
+                        // Give plugins a chance to modify the available entry types
+                        $event = new DefineEntryTypesEvent([
+                            'section' => $section->handle,
+                            'entryTypes' => $section->getEntryTypes(),
+                        ]);
+                        Event::trigger(static::class, self::EVENT_DEFINE_ENTRY_TYPES, $event);
+                        $entryTypesMap[$section->handle] = \array_reduce(\array_values($event->entryTypes ?? []), function (array $carry, EntryType $entryType) {
                             $carry["id:{$entryType->id}"] = Craft::t('site', $entryType->name);
                             return $carry;
                         }, []);
                     }
                     // Map site IDs to site handles
+                    $siteMap = [];
                     $sites = Craft::$app->getSites()->getAllSites();
                     foreach ($sites as $site) {
                         if (!$site->primary) {
-                            $data['sites']['site:' . $site->id] = $site->handle;
+                            $siteMap['site:' . $site->id] = $site->handle;
                         }
                     }
-                    $data['isCraft34'] = \version_compare(Craft::$app->getVersion(), '3.4.0', '>=');
+                    $data = [
+                        'entryTypes' => $entryTypesMap,
+                        'sites' => $siteMap,
+                        'isCraft34' => \version_compare(Craft::$app->getVersion(), '3.4.0', '>='),
+                    ];
                     Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
                     Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
                 } catch (InvalidConfigException $e) {
@@ -162,21 +180,34 @@ class ChildMe extends Plugin
 
                             /** @var Entry $entry */
                             $entry = $event->sender;
+                            $section = $entry->getSection();
 
-                            if ($entry->section->type !== 'structure') {
+                            if ($section->type !== 'structure') {
                                 break;
                             }
 
-                            $maxLevels = $entry->section->maxLevels;
+                            $maxLevels = $section->maxLevels;
                             $visible = !$maxLevels || $entry->level < $maxLevels;
 
+                            // Give plugins a chance to modify the available entry types
+                            $entryTypesEvent = new DefineEntryTypesEvent([
+                                'section' => $section->handle,
+                                'entryTypes' => $section->getEntryTypes(),
+                            ]);
+
+                            Event::trigger(static::class, self::EVENT_DEFINE_ENTRY_TYPES, $entryTypesEvent);
+
+                            $entryTypes = \array_values($entryTypesEvent->entryTypes ?? [$entry->getType()]);
+
+                            $entryType = $entryTypes[0];
+
                             $variables = [
-                                'typeId' => $entry->type->id,
+                                'typeId' => $entryType->id,
                                 'parentId' => $entry->id,
                             ];
 
                             $attributes = [
-                                'data-section="' . $entry->section->handle . '"',
+                                'data-section="' . $section->handle . '"',
                                 'data-id="' . $entry->id . '"',
                             ];
 
