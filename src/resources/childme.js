@@ -137,9 +137,9 @@
             this.openEntryTypeMenu = null;
         },
 
-        // Position a fixed menu relative to the trigger – only relevant for Craft 3.4+
+        // Position a fixed menu relative to the trigger
         positionMenu: function (menu) {
-            if (!menu || !this.data.isCraft34) {
+            if (!menu) {
                 return;
             }
             var $menu = $(menu);

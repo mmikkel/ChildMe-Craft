@@ -137,7 +137,6 @@ class ChildMe extends Plugin
                     $data = [
                         'entryTypes' => $entryTypesMap,
                         'sites' => $siteMap,
-                        'isCraft34' => \version_compare(Craft::$app->getVersion(), '3.4.0', '>='),
                     ];
                     Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
                     Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
