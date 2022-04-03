@@ -2,3 +2,6 @@ label#entryType-label,
 select#entryType {
   font-weight: bold;
 }
+a[data-childmeadd] .menu a {
+  cursor: pointer;
+}

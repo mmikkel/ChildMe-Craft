@@ -14,5 +14,6 @@
  * @since     1.0.0
  */
 return [
+    'Add child' => 'Add child',
     'Child Me! plugin loaded' => 'Child Me! plugin loaded',
 ];

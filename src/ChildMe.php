@@ -44,7 +44,7 @@ class ChildMe extends Plugin
      * @event DefineEntryTypesEvent The event that is triggered when defining the available entry types for a section
      * @since 1.2.0
      */
-    const EVENT_DEFINE_ENTRY_TYPES = 'defineEntryTypes';
+    public const EVENT_DEFINE_ENTRY_TYPES = 'defineEntryTypes';
 
     /**
      * @var ChildMe
@@ -60,7 +60,6 @@ class ChildMe extends Plugin
     public function init()
     {
         parent::init();
-        self::$plugin = $this;
 
         $request = Craft::$app->getRequest();
 
@@ -158,7 +157,7 @@ class ChildMe extends Plugin
     protected function addElementTableAttributes()
     {
         $segments = Craft::$app->getRequest()->getSegments();
-        $actionSegment = $segments[count($segments) - 1] ?? null;
+        $actionSegment = $segments[(is_array($segments) || $segments instanceof \Countable ? count($segments) : 0) - 1] ?? null;
 
         $classes = [Entry::class, Category::class];
 
@@ -176,7 +175,7 @@ class ChildMe extends Plugin
                     $html = '';
 
                     switch ($class) {
-                        case 'craft\elements\Entry':
+                        case \craft\elements\Entry::class:
 
                             /** @var Entry $entry */
                             $entry = $event->sender;
@@ -203,12 +202,12 @@ class ChildMe extends Plugin
 
                             $variables = [
                                 'typeId' => $entryType->id,
-                                'parentId' => $entry->id,
+                                'parentId' => $entry->getId(),
                             ];
 
                             $attributes = [
                                 'data-section="' . $section->handle . '"',
-                                'data-id="' . $entry->id . '"',
+                                'data-id="' . $entry->getId() . '"',
                             ];
 
                             if (Craft::$app->getIsMultiSite()) {
@@ -217,23 +216,23 @@ class ChildMe extends Plugin
                                 $attributes[] = 'data-site="' . $site->handle . '"';
                             }
 
-                            $newUrl = UrlHelper::cpUrl(implode('/', ['entries', $entry->section->handle, 'new']), $variables);
+                            $newUrl = UrlHelper::cpUrl(implode('/', ['entries', $entry->getSection()->handle, 'new']), $variables);
 
                             $html = $this->getElementTableAttributeHtml($newUrl, $visible, $attributes);
 
                             break;
-                        case 'craft\elements\Category':
+                        case \craft\elements\Category::class:
 
                             /** @var Category $category */
                             $category = $event->sender;
-                            $maxLevels = $category->group->maxLevels;
+                            $maxLevels = $category->getGroup()->maxLevels;
                             $visible = !$maxLevels || $category->level < $maxLevels;
 
                             $variables = [
-                                'parentId' => $category->id,
+                                'parentId' => $category->getId(),
                             ];
 
-                            $urlSegments = ['categories', $category->group->handle, 'new'];
+                            $urlSegments = ['categories', $category->getGroup()->handle, 'new'];
 
                             if (Craft::$app->getIsMultiSite()) {
                                 $site = $category->getSite();
@@ -257,7 +256,6 @@ class ChildMe extends Plugin
             });
         }
 
-
     }
 
     /**
@@ -268,7 +266,7 @@ class ChildMe extends Plugin
      */
     protected function getElementTableAttributeHtml($newUrl, $visible = true, $attrs = [])
     {
-        return '<span><a href="' . $newUrl . '" data-icon="plus" data-childmeadd ' . implode(' ', $attrs) . 'title="' . Craft::t('child-me', 'Add child') . '"' . (!$visible ? ' style="display:none;" aria-hidden="true" tabindex="-1"' : '') . '></a></span>';
+        return '<span><a data-childmeadd data-href="' . $newUrl . '" data-icon="plus" ' . implode(' ', $attrs) . 'title="' . Craft::t('child-me', 'Add child') . '"' . ($visible ? '' : ' style="display:none;" aria-hidden="true" tabindex="-1"') . '></a></span>';
     }
 
 }

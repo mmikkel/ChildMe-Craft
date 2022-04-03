@@ -1,6 +1,8 @@
 (function (window) {
 
-    if (!window.Craft) return false;
+    if (!window.Craft) {
+        return false;
+    };
 
     var elementIndex = Craft.BaseElementIndex.prototype;
     var init = elementIndex.init;
@@ -65,8 +67,6 @@
 
         createEntryTypeMenu: function ($button) {
 
-            console.log($button.data());
-
             var sectionHandle = $button.data('section') || null;
             if (!sectionHandle) {
                 return null;
@@ -98,7 +98,9 @@
                 .data('_childmemenu', $(menuHtml).appendTo($button))
                 .removeAttr('title');
 
-            return new Garnish.MenuBtn($button);
+            var menu = Garnish.MenuBtn($button);
+
+            return menu;
         },
 
         getEntryTypeMenu: function ($button) {
@@ -141,7 +143,7 @@
                 return;
             }
             var $menu = $(menu);
-            var $anchor = $menu.parent('a[data-childmeadd]');
+            var $anchor = $menu.parent('[data-childmeadd]');
             if (!$anchor.length) {
                 return;
             }
@@ -172,13 +174,14 @@
             this.closeActiveEntryTypeMenu();
             var $button = $(e.currentTarget);
             var menu = this.getEntryTypeMenu($button);
-            if (menu) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.openEntryTypeMenu = menu;
-                this.positionMenu(menu);
-                menu.show();
+            if (!menu) {
+                window.location.href = $button.data('href');
             }
+            e.preventDefault();
+            e.stopPropagation();
+            this.openEntryTypeMenu = menu;
+            this.positionMenu(menu);
+            menu.show();
         },
 
         onDragStop: function (tableSorter) {

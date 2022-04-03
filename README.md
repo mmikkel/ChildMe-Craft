@@ -38,6 +38,6 @@ This plugin is provided free of charge and you can do whatever you want with it.
 
 Please report any bugs, feature requests or other issues [here](https://github.com/mmikkel/ChildMe-Craft/issues). Note that this is a hobby project and no promises are made regarding response time, feature implementations or bug fixes.
 
-Plugin icon: Pram by juli from [the Noun Project](https://thenounproject.com)
+Plugin icon: Baby by Chintuza from [the Noun Project](https://thenounproject.com/icon/baby-3214276/)
 
 
