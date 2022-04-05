@@ -17,6 +17,7 @@ use craft\elements\Entry;
 use craft\elements\Category;
 use craft\events\RegisterElementTableAttributesEvent;
 use craft\events\SetElementTableAttributeHtmlEvent;
+use craft\events\TemplateEvent;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
@@ -37,8 +38,6 @@ use yii\base\Event;
  */
 class ChildMe extends Plugin
 {
-    // Static Properties
-    // =========================================================================
 
     /**
      * @event DefineEntryTypesEvent The event that is triggered when defining the available entry types for a section
@@ -47,27 +46,17 @@ class ChildMe extends Plugin
     public const EVENT_DEFINE_ENTRY_TYPES = 'defineEntryTypes';
 
     /**
-     * @var ChildMe
+     * @return void
      */
-    public static $plugin;
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
         $request = Craft::$app->getRequest();
-
-        if (!$request->getIsCpRequest() || $request->getIsConsoleRequest()) {
+        if (!$request->getIsCpRequest() || $request->getIsConsoleRequest() || $request->getIsLoginRequest()) {
             return;
         }
 
-        // Handler: EVENT_AFTER_LOAD_PLUGINS
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_LOAD_PLUGINS,
@@ -88,64 +77,61 @@ class ChildMe extends Plugin
 
     // Protected Methods
     // =========================================================================
+
     /**
-     *
+     * @return void
      */
-    protected function doIt()
+    protected function doIt(): void
     {
         $user = Craft::$app->getUser();
         if (!$user->id) {
             return;
         }
         $this->addElementTableAttributes();
-        $this->registerResources();
+        $this->registerAssetBundle();
     }
 
     /**
-     *
+     * @return void
      */
-    protected function registerResources()
+    protected function registerAssetBundle(): void
     {
         Event::on(
             View::class,
-            View::EVENT_BEFORE_RENDER_TEMPLATE,
-            function () {
-                try {
-                    // Map section and entry type IDs to entry type names
-                    $entryTypesMap = [];
-                    $sections = Craft::$app->getSections()->getAllSections();
-                    foreach ($sections as $section) {
-                        // Give plugins a chance to modify the available entry types
-                        $event = new DefineEntryTypesEvent([
-                            'section' => $section->handle,
-                            'entryTypes' => $section->getEntryTypes(),
-                        ]);
-                        Event::trigger(static::class, self::EVENT_DEFINE_ENTRY_TYPES, $event);
-                        $entryTypesMap[$section->handle] = \array_reduce(\array_values($event->entryTypes ?? []), function (array $carry, EntryType $entryType) {
-                            $carry["id:{$entryType->id}"] = Craft::t('site', $entryType->name);
-                            return $carry;
-                        }, []);
-                    }
-                    // Map site IDs to site handles
-                    $siteMap = [];
-                    $sites = Craft::$app->getSites()->getAllSites();
-                    foreach ($sites as $site) {
-                        if (!$site->primary) {
-                            $siteMap['site:' . $site->id] = $site->handle;
-                        }
-                    }
-                    $data = [
-                        'entryTypes' => $entryTypesMap,
-                        'sites' => $siteMap,
-                    ];
-                    Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
-                    Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
-                } catch (InvalidConfigException $e) {
-                    Craft::error(
-                        'Error registering AssetBundle - ' . $e->getMessage(),
-                        __METHOD__
-                    );
+            View::EVENT_BEFORE_RENDER_PAGE_TEMPLATE,
+            function (TemplateEvent $event) {
+                if ($event->templateMode !== View::TEMPLATE_MODE_CP) {
+                    return;
                 }
+                // Map section and entry type IDs to entry type names
+                $entryTypesMap = [];
+                $sections = Craft::$app->getSections()->getAllSections();
+                foreach ($sections as $section) {
+                    // Give plugins a chance to modify the available entry types
+                    $event = new DefineEntryTypesEvent([
+                        'section' => $section->handle,
+                        'entryTypes' => $section->getEntryTypes(),
+                    ]);
+                    Event::trigger(static::class, self::EVENT_DEFINE_ENTRY_TYPES, $event);
+                    $entryTypesMap[$section->handle] = \array_reduce(\array_values($event->entryTypes ?? []), function (array $carry, EntryType $entryType) {
+                        $carry["id:{$entryType->id}"] = Craft::t('site', $entryType->name);
+                        return $carry;
+                    }, []);
+                }
+                // Map site IDs to site handles
+                $siteMap = [];
+                $sites = Craft::$app->getSites()->getAllSites();
+                foreach ($sites as $site) {
+                    if (!$site->primary) {
+                        $siteMap['site:' . $site->id] = $site->handle;
+                    }
+                }
+                $data = [
+                    'entryTypes' => $entryTypesMap,
+                    'sites' => $siteMap,
+                ];
+                Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
+                Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
             }
         );
     }
@@ -174,7 +160,7 @@ class ChildMe extends Plugin
                     $html = '';
 
                     switch ($class) {
-                        case \craft\elements\Entry::class:
+                        case Entry::class:
 
                             /** @var Entry $entry */
                             $entry = $event->sender;
@@ -188,12 +174,12 @@ class ChildMe extends Plugin
                             $visible = !$maxLevels || $entry->level < $maxLevels;
 
                             // Give plugins a chance to modify the available entry types
-                            $entryTypesEvent = new DefineEntryTypesEvent([
-                                'section' => $section->handle,
-                                'entryTypes' => $section->getEntryTypes(),
-                            ]);
-
-                            Event::trigger(static::class, self::EVENT_DEFINE_ENTRY_TYPES, $entryTypesEvent);
+                            if ($this->hasEventHandlers(self::EVENT_DEFINE_ENTRY_TYPES)) {
+                                $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, new DefineEntryTypesEvent([
+                                    'section' => $section->handle,
+                                    'entryTypes' => $section->getEntryTypes(),
+                                ]));
+                            }
 
                             $entryTypes = \array_values($entryTypesEvent->entryTypes ?? [$entry->getType()]);
 

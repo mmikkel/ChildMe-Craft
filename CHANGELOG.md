@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Added
 - Added Craft 4.0 compatibility 
 
+### Improved
+- Child Me!'s CSS and JS assets no longer outputs for pages rendered in control panel requests, if the template that rendered was in the site template folder.
+
 ### Changed
 - Changed plugin icon
 - Child Me! now requires Craft 3.7.0
