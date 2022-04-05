@@ -4,17 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## 1.3.0 - 2022-04-05
 
 ### Added
 - Added Craft 4.0 compatibility 
+
+### Fixed
+- Fixes an issue where Child Me! would trigger the `EVENT_DEFINE_ENTRY_TYPES` event for all sections, not just structures
 
 ### Improved
 - Child Me!'s CSS and JS assets no longer outputs for pages rendered in control panel requests, if the template that rendered was in the site template folder.
 
 ### Changed
 - Changed plugin icon
-- Child Me! now requires Craft 3.7.0
+- Child Me! now requires Craft 3.7.0+
 
 ## 1.2.0 - 2020-11-21  
 

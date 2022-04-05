@@ -21,6 +21,7 @@ use craft\events\TemplateEvent;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
+use craft\models\Section;
 use craft\services\Plugins;
 use craft\web\View;
 
@@ -100,36 +101,53 @@ class ChildMe extends Plugin
             View::class,
             View::EVENT_BEFORE_RENDER_PAGE_TEMPLATE,
             function (TemplateEvent $event) {
+
                 if ($event->templateMode !== View::TEMPLATE_MODE_CP) {
                     return;
                 }
+
                 // Map section and entry type IDs to entry type names
                 $entryTypesMap = [];
                 $sections = Craft::$app->getSections()->getAllSections();
                 foreach ($sections as $section) {
+
+                    if ($section->type !== Section::TYPE_STRUCTURE) {
+                        continue;
+                    }
+
+                    $entryTypes = $section->getEntryTypes();
+
                     // Give plugins a chance to modify the available entry types
-                    $event = new DefineEntryTypesEvent([
-                        'section' => $section->handle,
-                        'entryTypes' => $section->getEntryTypes(),
-                    ]);
-                    Event::trigger(static::class, self::EVENT_DEFINE_ENTRY_TYPES, $event);
-                    $entryTypesMap[$section->handle] = \array_reduce(\array_values($event->entryTypes ?? []), function (array $carry, EntryType $entryType) {
+                    if ($this->hasEventHandlers(self::EVENT_DEFINE_ENTRY_TYPES)) {
+                        $event = new DefineEntryTypesEvent([
+                            'section' => $section->handle,
+                            'entryTypes' => $section->getEntryTypes(),
+                        ]);
+                        $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, $event);
+                        $entryTypes = $event->entryTypes ?? [];
+                    }
+
+                    $entryTypesMap[$section->handle] = \array_reduce(\array_values($entryTypes), function (array $carry, EntryType $entryType) {
                         $carry["id:{$entryType->id}"] = Craft::t('site', $entryType->name);
                         return $carry;
                     }, []);
                 }
+
                 // Map site IDs to site handles
                 $siteMap = [];
                 $sites = Craft::$app->getSites()->getAllSites();
+
                 foreach ($sites as $site) {
                     if (!$site->primary) {
                         $siteMap['site:' . $site->id] = $site->handle;
                     }
                 }
+
                 $data = [
                     'entryTypes' => $entryTypesMap,
                     'sites' => $siteMap,
                 ];
+
                 Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
                 Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
             }
@@ -166,7 +184,7 @@ class ChildMe extends Plugin
                             $entry = $event->sender;
                             $section = $entry->getSection();
 
-                            if ($section->type !== 'structure') {
+                            if ($section->type !== Section::TYPE_STRUCTURE) {
                                 break;
                             }
 
@@ -206,7 +224,8 @@ class ChildMe extends Plugin
                             $html = $this->getElementTableAttributeHtml($newUrl, $visible, $attributes);
 
                             break;
-                        case \craft\elements\Category::class:
+
+                        case Category::class:
 
                             /** @var Category $category */
                             $category = $event->sender;
