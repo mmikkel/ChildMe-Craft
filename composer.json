@@ -2,7 +2,7 @@
     "name": "mmikkel/child-me",
     "description": "Easily create child elements",
     "type": "craft-plugin",
-    "version": "1.3.0",
+    "version": "1.3.1",
     "keywords": [
         "craft",
         "cms",
@@ -23,7 +23,7 @@
     ],
     "require": {
         "craftcms/cms": "^3.7.0|^4.0.0-beta.3",
-        "php": "^7.2.5|^8.0.2"
+        "php": "^7.2.5|^8.0"
     },
     "require-dev": {
         "craftcms/rector": "dev-main"

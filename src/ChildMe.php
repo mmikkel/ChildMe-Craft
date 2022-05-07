@@ -22,7 +22,7 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\Section;
-use craft\services\Plugins;
+use craft\web\Application;
 use craft\web\View;
 
 use mmikkel\childme\events\DefineEntryTypesEvent;
@@ -59,8 +59,8 @@ class ChildMe extends Plugin
         }
 
         Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_LOAD_PLUGINS,
+            Application::class,
+            Application::EVENT_INIT,
             function () {
                 $this->doIt();
             }
