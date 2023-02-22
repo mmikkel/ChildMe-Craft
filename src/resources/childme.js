@@ -78,7 +78,7 @@
                 return null;
             }
 
-            var menuHtml = '<div class="menu" data-align="center" style="z-index:1;"><ul>';
+            var menuHtml = '<div class="menu menu--disclosure" data-align="center"><ul>';
             var menuOptions = [];
             var typeId;
 
@@ -89,7 +89,7 @@
                 if (!typeId || isNaN(typeId)) {
                     continue;
                 }
-                menuOptions.push('<li><a data-type="' + typeId + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + (siteHandle ? '" data-site="' + siteHandle : '') + '" tabindex="0">' + entryTypes[entryTypeIds[j]] + '</a></li>');
+                menuOptions.push('<li><a class="menu-option flex" data-type="' + typeId + '" data-parent="' + $button.data('id') + '" data-section="' + sectionHandle + (siteHandle ? '" data-site="' + siteHandle : '') + '" tabindex="0">' + entryTypes[entryTypeIds[j]] + '</a></li>');
             }
 
             menuHtml += menuOptions.join('') + '</ul></div>';
