@@ -192,19 +192,24 @@ class ChildMe extends Plugin
                             $visible = !$maxLevels || $entry->level < $maxLevels;
 
                             // Give plugins a chance to modify the available entry types
+                            $entryTypes = $section->getEntryTypes();
                             if ($this->hasEventHandlers(self::EVENT_DEFINE_ENTRY_TYPES)) {
-                                $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, new DefineEntryTypesEvent([
+                                $entryTypesEvent = new DefineEntryTypesEvent([
                                     'section' => $section->handle,
                                     'entryTypes' => $section->getEntryTypes(),
-                                ]));
+                                ]);
+                                $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, $entryTypesEvent);
+                                $entryTypes = array_values($entryTypesEvent->entryTypes ?? []);
                             }
 
-                            $entryTypes = \array_values($entryTypesEvent->entryTypes ?? [$entry->getType()]);
+                            if (empty($entryTypes)) {
+                                $entryTypes = [$entry->getType()];
+                            }
 
-                            $entryType = $entryTypes[0];
+                            $defaultEntryType = $entryTypes[0];
 
                             $variables = [
-                                'typeId' => $entryType->id,
+                                'typeId' => $defaultEntryType->id,
                                 'parentId' => $entry->getId(),
                             ];
 
