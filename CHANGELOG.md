@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## 1.3.3 - 2023-10-30
 ### Fixed
 - Fixed a bug where the default entry type could be used for the Child Me! dropdown menu, even if it has been filtered out via an `EVENT_DEFINE_ENTRY_TYPES` event handler
 - Fixed a bug where Child Me! buttons could be displayed in element index modals
