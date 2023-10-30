@@ -159,16 +159,14 @@ class ChildMe extends Plugin
      */
     protected function addElementTableAttributes()
     {
-        $segments = Craft::$app->getRequest()->getSegments();
-        $actionSegment = $segments[(is_array($segments) || $segments instanceof \Countable ? count($segments) : 0) - 1] ?? null;
 
         $classes = [Entry::class, Category::class];
 
         foreach ($classes as $class) {
 
             // Register "Add child" attribute
-            Event::on($class, Element::EVENT_REGISTER_TABLE_ATTRIBUTES, function (RegisterElementTableAttributesEvent $event) use ($actionSegment) {
-                $event->tableAttributes['_childme_addChild'] = $actionSegment !== 'get-elements' ? Craft::t('child-me', 'Add child') : '';
+            Event::on($class, Element::EVENT_REGISTER_TABLE_ATTRIBUTES, function (RegisterElementTableAttributesEvent $event) {
+                $event->tableAttributes['_childme_addChild'] = Craft::t('child-me', 'Add child');
             });
 
             // Get the HTML for that attribute

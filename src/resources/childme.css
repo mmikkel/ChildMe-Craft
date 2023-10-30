@@ -5,3 +5,8 @@ select#entryType {
 a[data-childmeadd] .menu a {
   cursor: pointer;
 }
+
+.modal .elements .tableview th[data-attribute="_childme_addChild"],
+.modal .elements .tableview td[data-attr="_childme_addChild"] {
+    display: none !important;
+}

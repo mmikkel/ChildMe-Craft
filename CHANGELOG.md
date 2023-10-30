@@ -6,7 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 ### Fixed
-- Fixed a bug where the default entry type could be used for the Child Me! dropdown menu, even if it has been filtered out via an `EVENT_DEFINE_ENTRY_TYPES` event handler  
+- Fixed a bug where the default entry type could be used for the Child Me! dropdown menu, even if it has been filtered out via an `EVENT_DEFINE_ENTRY_TYPES` event handler
+- Fixed a bug where Child Me! buttons could be displayed in element index modals
 
 ## 1.3.2 - 2023-02-22
 ### Fixed  
