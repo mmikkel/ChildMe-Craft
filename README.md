@@ -1,6 +1,6 @@
 # Child Me! plugin for Craft CMS
 
-Child Me! adds an "New child" element index attribute to structure indexes (entries and categories are supported). Adding this attribute to an index, renders a button that works as a "shortcut" to create new child
+Child Me! adds a "New child" element index attribute to structure indexes (entries and categories are supported). Adding this attribute to an index, renders a button that works as a "shortcut" to create new child
 elements nested under a particular parent – making it much easier to add a child element to a particular parent.  
 
 For structure sections with multiple entry types, the Child Me! button displays a menu, giving authors quick access to create a child entry using a particular entry type, as well.
