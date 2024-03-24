@@ -14,7 +14,7 @@
     {% else %}
         {# Create a disclosure menu, but neglect to add the [data-disclosure-trigger] attribute to, essentially, lazy-load the menu; otherwise Craft would create a 100 of these on pageload #}
         <button type="button"
-                class="childme-button{{ hidden ? ' hidden' }}"
+                class="childme-button btn{{ hidden ? ' hidden' }}"
                 data-icon="plus"
                 aria-controls="childme-menu-{{ element.id }}"
                 aria-expanded="false"
@@ -37,6 +37,9 @@
     {% css %}
         .childme-button {
             color: var(--link-color);
+            background-color: transparent;
+            height: auto;
+            padding: 0;
         }
         .modal .elements .tableview th[data-attribute="_childme_addChild"],
         .modal .elements .tableview td[data-attr="_childme_addChild"] {
