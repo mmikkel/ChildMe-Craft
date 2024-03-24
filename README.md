@@ -9,7 +9,7 @@ For structure sections with multiple entry types, the Child Me! button displays 
 
 ## Requirements
 
-This plugin requires Craft CMS 3.7.0+ or 4.0.0-beta.3+.
+This plugin requires Craft CMS 5.0+
 
 ## Installation
 
