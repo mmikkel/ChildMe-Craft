@@ -1,11 +1,11 @@
 <?php
 /**
- * Child Me! plugin for Craft CMS 3.x
+ * Child Me! plugin for Craft CMS 5.x
  *
  * Easily create child elements
  *
  * @link      https://vaersaagod.no
- * @copyright Copyright (c) 2017 Mats Mikkel Rummelhoff
+ * @copyright Copyright (c) 2024 Mats Mikkel Rummelhoff
  */
 
 namespace mmikkel\childme;
@@ -15,14 +15,12 @@ use craft\base\Element;
 use craft\base\Plugin;
 use craft\elements\Entry;
 use craft\elements\Category;
+use craft\events\DefineAttributeHtmlEvent;
 use craft\events\RegisterElementTableAttributesEvent;
-use craft\events\SetElementTableAttributeHtmlEvent;
 use craft\events\TemplateEvent;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\Section;
-use craft\web\Application;
 use craft\web\View;
 
 use mmikkel\childme\events\DefineEntryTypesEvent;
@@ -46,9 +44,6 @@ class ChildMe extends Plugin
      */
     public const EVENT_DEFINE_ENTRY_TYPES = 'defineEntryTypes';
 
-    /**
-     * @return void
-     */
     public function init(): void
     {
         parent::init();
@@ -58,222 +53,190 @@ class ChildMe extends Plugin
             return;
         }
 
-        Event::on(
-            Application::class,
-            Application::EVENT_INIT,
-            function () {
-                $this->doIt();
-            }
-        );
-
-        Craft::info(
-            Craft::t(
-                'child-me',
-                '{name} plugin loaded',
-                ['name' => $this->name]
-            ),
-            __METHOD__
-        );
+        Craft::$app->onInit(function () {
+            $this->_registerEventHandlers();
+        });
     }
 
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @return void
-     */
-    protected function doIt(): void
+    private function _registerEventHandlers(): void
     {
-        $user = Craft::$app->getUser();
-        if (!$user->id) {
-            return;
+
+        // Register entry and category table attribute HTML for Child Me! buttons
+        foreach ([
+                     Entry::class,
+                     Category::class
+                 ] as $elementClass) {
+
+            Event::on(
+                $elementClass,
+                Element::EVENT_REGISTER_TABLE_ATTRIBUTES,
+                static function (RegisterElementTableAttributesEvent $event) {
+                    $event->tableAttributes['_childme_addChild'] = Craft::t('app', 'New child');
+                }
+            );
+
+            // Get the HTML for that attribute
+            Event::on(
+                $elementClass,
+                Element::EVENT_DEFINE_ATTRIBUTE_HTML,
+                function (DefineAttributeHtmlEvent $event) use ($elementClass) {
+                    if ($event->attribute !== '_childme_addChild') {
+                        return;
+                    }
+                    $element = $event->sender;
+                    $html = '';
+                    try {
+                        if ($element instanceof Entry) {
+                            $html = $this->_renderChildMeButtonForEntry($element);
+                        } else if ($element instanceof Category) {
+                            $html = $this->_renderChildMeButtonForCategory($element);
+                        }
+                    } catch (\Throwable $e) {
+                        Craft::error($e, __METHOD__);
+                    }
+                    $event->html = $html;
+                }
+            );
+
+            // Don't break inline editing - https://github.com/craftcms/cms/issues/14639
+            Event::on(
+                $elementClass,
+                Element::EVENT_DEFINE_INLINE_ATTRIBUTE_INPUT_HTML,
+                static function (DefineAttributeHtmlEvent $event) {
+                    if ($event->attribute === '_childme_addChild') {
+                        $event->html = '';
+                    }
+                }
+            );
         }
-        $this->addElementTableAttributes();
-        $this->registerAssetBundle();
-    }
 
-    /**
-     * @return void
-     */
-    protected function registerAssetBundle(): void
-    {
+        // Add some JavasScript
         Event::on(
             View::class,
             View::EVENT_BEFORE_RENDER_PAGE_TEMPLATE,
-            function (TemplateEvent $event) {
-
-                if ($event->templateMode !== View::TEMPLATE_MODE_CP) {
+            static function (TemplateEvent $event) {
+                if (
+                    $event->templateMode !== View::TEMPLATE_MODE_CP ||
+                    !in_array($event->template,  ['entries', 'categories/_index.twig'], true)
+                ) {
                     return;
                 }
-
-                // Map section and entry type IDs to entry type names
-                $entryTypesMap = [];
-                $sections = Craft::$app->getSections()->getAllSections();
-                foreach ($sections as $section) {
-
-                    if ($section->type !== Section::TYPE_STRUCTURE) {
-                        continue;
+                $js = <<<JS
+                    // Init Child Me! entry type disclosure menus
+                    $('body').on('click', 'button.childme-button:not([data-disclosure-trigger])', e => {
+                        e.target.setAttribute('data-disclosure-trigger', 'true');
+                        (new Garnish.DisclosureMenu($(e.target))).show();
+                    });
+                    // Hook into Craft.ElementTableSorter to hide/show Child Me! buttons when their elements' levels change
+                    try {
+                        const elementTableSorter = Craft.ElementTableSorter.prototype;
+                        const onDragStop = elementTableSorter.onDragStop;
+                        elementTableSorter.onDragStop = function () {
+                            onDragStop.apply(this, arguments);
+                            this.\$items.find('.childme-button').removeClass('hidden');
+                            const maxLevels = parseInt(this.settings.maxLevels || null, 10);
+                            if (!maxLevels) {
+                                return;
+                            }
+                            this.\$items.filter(function () {
+                                return $(this).data('level') >= maxLevels;
+                            }).find('.childme-button').addClass('hidden');
+                        };
+                    } catch (error) {
+                        console.error(error);
                     }
-
-                    $entryTypes = $section->getEntryTypes();
-
-                    // Give plugins a chance to modify the available entry types
-                    if ($this->hasEventHandlers(self::EVENT_DEFINE_ENTRY_TYPES)) {
-                        $event = new DefineEntryTypesEvent([
-                            'section' => $section->handle,
-                            'entryTypes' => $section->getEntryTypes(),
-                        ]);
-                        $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, $event);
-                        $entryTypes = $event->entryTypes ?? [];
-                    }
-
-                    $entryTypesMap[$section->handle] = \array_reduce(\array_values($entryTypes), function (array $carry, EntryType $entryType) {
-                        $carry["id:{$entryType->id}"] = Craft::t('site', $entryType->name);
-                        return $carry;
-                    }, []);
-                }
-
-                // Map site IDs to site handles
-                $siteMap = [];
-                $sites = Craft::$app->getSites()->getAllSites();
-
-                foreach ($sites as $site) {
-                    if (!$site->primary) {
-                        $siteMap['site:' . $site->id] = $site->handle;
-                    }
-                }
-
-                $data = [
-                    'entryTypes' => $entryTypesMap,
-                    'sites' => $siteMap,
-                ];
-
-                Craft::$app->getView()->registerAssetBundle(ChildMeBundle::class);
-                Craft::$app->getView()->registerJs('Craft.ChildMePlugin.init(' . Json::encode($data) . ')');
+                JS;
+                Craft::$app->getView()->registerJs($js, View::POS_END);
             }
+        );
+
+    }
+
+    /**
+     * @param Entry $entry
+     * @return string
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
+     */
+    private function _renderChildMeButtonForEntry(Entry $entry): string
+    {
+        $section = $entry->getSection();
+
+        if ($section?->type !== Section::TYPE_STRUCTURE || $section?->maxLevels === 1) {
+            return '';
+        }
+
+        // Give plugins a chance to modify the available entry types
+        $entryTypes = $section->getEntryTypes();
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_ENTRY_TYPES)) {
+            $entryTypesEvent = new DefineEntryTypesEvent([
+                'entry' => $entry,
+                'section' => $section->handle,
+                'entryTypes' => $section->getEntryTypes(),
+            ]);
+            $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, $entryTypesEvent);
+            $entryTypes = array_values($entryTypesEvent->entryTypes ?? []);
+        }
+
+        if (empty($entryTypes)) {
+            $entryTypes = [$entry->getType()];
+        }
+
+        $links = array_map(static function (EntryType $entryType) use ($entry, $section) {
+            return [
+                'url' => UrlHelper::cpUrl("entries/$section->handle/new", [
+                    'site' => $entry->getSite()?->handle,
+                    'parentId' => $entry->id,
+                    'typeId' => $entryType->id,
+                ]),
+                'label' => $entryType->name,
+            ];
+        }, $entryTypes);
+
+        return Craft::$app->getView()->renderTemplate(
+            template: 'child-me/childme-button.twig',
+            variables: [
+                'links' => $links,
+                'element' => $entry,
+                'hidden' => !empty($section->maxLevels) && $entry->level >= $section->maxLevels,
+            ]
         );
     }
 
     /**
-     *  Add element table attributes
+     * @param Category $category
+     * @return string
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
      */
-    protected function addElementTableAttributes()
+    private function _renderChildMeButtonForCategory(Category $category): string
     {
 
-        $classes = [Entry::class, Category::class];
+        $group = $category->getGroup();
 
-        foreach ($classes as $class) {
-
-            // Register "Add child" attribute
-            Event::on($class, Element::EVENT_REGISTER_TABLE_ATTRIBUTES, function (RegisterElementTableAttributesEvent $event) {
-                $event->tableAttributes['_childme_addChild'] = Craft::t('child-me', 'Add child');
-            });
-
-            // Get the HTML for that attribute
-            Event::on($class, Element::EVENT_SET_TABLE_ATTRIBUTE_HTML, function (SetElementTableAttributeHtmlEvent $event) use ($class) {
-                if ($event->attribute === '_childme_addChild') {
-
-                    $html = '';
-
-                    switch ($class) {
-                        case Entry::class:
-
-                            /** @var Entry $entry */
-                            $entry = $event->sender;
-                            $section = $entry->getSection();
-
-                            if ($section->type !== Section::TYPE_STRUCTURE) {
-                                break;
-                            }
-
-                            $maxLevels = $section->maxLevels;
-                            $visible = !$maxLevels || $entry->level < $maxLevels;
-
-                            // Give plugins a chance to modify the available entry types
-                            $entryTypes = $section->getEntryTypes();
-                            if ($this->hasEventHandlers(self::EVENT_DEFINE_ENTRY_TYPES)) {
-                                $entryTypesEvent = new DefineEntryTypesEvent([
-                                    'section' => $section->handle,
-                                    'entryTypes' => $section->getEntryTypes(),
-                                ]);
-                                $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, $entryTypesEvent);
-                                $entryTypes = array_values($entryTypesEvent->entryTypes ?? []);
-                            }
-
-                            if (empty($entryTypes)) {
-                                $entryTypes = [$entry->getType()];
-                            }
-
-                            $defaultEntryType = $entryTypes[0];
-
-                            $variables = [
-                                'typeId' => $defaultEntryType->id,
-                                'parentId' => $entry->getId(),
-                            ];
-
-                            $attributes = [
-                                'data-section="' . $section->handle . '"',
-                                'data-id="' . $entry->getId() . '"',
-                            ];
-
-                            if (Craft::$app->getIsMultiSite()) {
-                                $site = $entry->getSite();
-                                $variables['site'] = $site->handle;
-                                $attributes[] = 'data-site="' . $site->handle . '"';
-                            }
-
-                            $newUrl = UrlHelper::cpUrl(implode('/', ['entries', $entry->getSection()->handle, 'new']), $variables);
-
-                            $html = $this->getElementTableAttributeHtml($newUrl, $visible, $attributes);
-
-                            break;
-
-                        case Category::class:
-
-                            /** @var Category $category */
-                            $category = $event->sender;
-                            $maxLevels = $category->getGroup()->maxLevels;
-                            $visible = !$maxLevels || $category->level < $maxLevels;
-
-                            $variables = [
-                                'parentId' => $category->getId(),
-                            ];
-
-                            $urlSegments = ['categories', $category->getGroup()->handle, 'new'];
-
-                            if (Craft::$app->getIsMultiSite()) {
-                                $site = $category->getSite();
-                                $variables['site'] = $site->handle;
-                                $urlSegments[] = $site->handle;
-                            }
-
-                            $newUrl = UrlHelper::cpUrl(implode('/', $urlSegments), $variables);
-
-                            $html = $this->getElementTableAttributeHtml($newUrl, $visible);
-
-                            break;
-                    }
-
-                    $event->html = $html;
-                    $event->handled = true;
-
-                }
-
-
-            });
+        if ($group->maxLevels === 1) {
+            return '';
         }
 
-    }
-
-    /**
-     * @param $newUrl
-     * @param bool $visible
-     * @param array $attrs
-     * @return string
-     */
-    protected function getElementTableAttributeHtml($newUrl, $visible = true, $attrs = [])
-    {
-        return '<span><a data-childmeadd data-href="' . $newUrl . '" data-icon="plus" ' . implode(' ', $attrs) . 'title="' . Craft::t('child-me', 'Add child') . '"' . ($visible ? '' : ' style="display:none;" aria-hidden="true" tabindex="-1"') . '></a></span>';
+        return Craft::$app->getView()->renderTemplate(
+            template: 'child-me/childme-button.twig',
+            variables: [
+                'links' => [[
+                    'url' => UrlHelper::cpUrl("categories/$group->handle/new", [
+                        'site' => $category->getSite()?->handle,
+                        'parentId' => $category->id,
+                    ])
+                ]],
+                'element' => $category,
+                'hidden' => !empty($group->maxLevels) && $category->level >= $group->maxLevels,
+            ]
+        );
     }
 
 }

@@ -1,6 +1,6 @@
 # Child Me! plugin for Craft CMS
 
-Child Me! adds an "Add child" element index attribute to structure indexes (entries and categories are supported). Adding this attribute to an index, renders a button that works as a "shortcut" to create new child
+Child Me! adds an "New child" element index attribute to structure indexes (entries and categories are supported). Adding this attribute to an index, renders a button that works as a "shortcut" to create new child
 elements nested under a particular parent – making it much easier to add a child element to a particular parent.  
 
 For structure sections with multiple entry types, the Child Me! button displays a menu, giving authors quick access to create a child entry using a particular entry type, as well.
@@ -27,10 +27,10 @@ To install the plugin, follow these instructions.
 
 ## Using Child Me!
 
-To actually use Child Me!, you'll need to add the "Add child" element index attribute manually, using the CEI (
+To actually use Child Me!, you'll need to add the "New child" element index attribute manually, using the CEI (
 Customizable Element Index) feature available in entry and category element indexes:
 
-Simply click the little cogwheel below your element sources in the left-side panel, check the "Add child" attribute,
+Simply click the little cogwheel below your element sources in the left-side panel, check the "New child" attribute,
 drag it to the position you want and hit "Save" (see screenshot for reference).
 
 ### Events
@@ -38,7 +38,7 @@ drag it to the position you want and hit "Save" (see screenshot for reference).
 `EVENT_DEFINE_ENTRY_TYPES`
 
 Child Me! triggers an event when creating entry type menus, giving plugins and modules a chance to modify the available
-entry types via the "Add child" button, for sections with multiple entry types. Example:
+entry types via the "New child" button, for sections with multiple entry types. Example:
 
 ```php
 \yii\base\Event::on(

@@ -1,0 +1,51 @@
+{% set element = element ?? null %}
+{% set links = links ?? [] %}
+{% set hidden = hidden ?? false %}
+
+{% if links and element %}
+    {% if links|length == 1 %}
+        <a href="{{ links[0].url }}"
+           class="childme-button{{ hidden ? ' hidden' }}"
+           data-icon="plus"
+           aria-label="{{ 'New child'|t('app') }}"
+        >
+            <craft-tooltip>{{ 'New child'|t('app') }}</craft-tooltip>
+        </a>
+    {% else %}
+        {# Create a disclosure menu, but neglect to add the [data-disclosure-trigger] attribute to, essentially, lazy-load the menu; otherwise Craft would create a 100 of these on pageload #}
+        <button type="button"
+                class="childme-button{{ hidden ? ' hidden' }}"
+                data-icon="plus"
+                aria-controls="childme-menu-{{ element.id }}"
+                aria-expanded="false"
+                aria-label="{{ 'New child'|t('app') }}"
+        >
+            <craft-tooltip>{{ 'New child'|t('app') }}</craft-tooltip>
+        </button>
+        <div id="childme-menu-{{ element.id }}" class="menu menu--disclosure">
+            <ul>
+                {% for link in links %}
+                    <li>
+                        <a href="{{ link.url }}"
+                           data-icon="plus"
+                        >{{ link.label }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    {% css %}
+        .childme-button {
+            color: var(--link-color);
+        }
+        .modal .elements .tableview th[data-attribute="_childme_addChild"],
+        .modal .elements .tableview td[data-attr="_childme_addChild"] {
+            display: none !important;
+        }
+        th[data-attribute="_childme_addChild"] {
+            color: transparent;
+            font-size: 0;
+            -webkit-text-size-adjust: none;
+        }
+    {% endcss %}
+{% endif %}

@@ -2,19 +2,20 @@
 
 namespace mmikkel\childme\events;
 
+use craft\elements\Entry;
+
 use yii\base\Event;
 
 class DefineEntryTypesEvent extends Event
 {
 
-    /**
-     * @var string
-     */
-    public $section;
+    /** @var Entry|null */
+    public ?Entry $entry = null;
 
-    /**
-     * @var array 
-     */
-    public $entryTypes = [];
+    /** @var string|null */
+    public ?string $section = null;
+
+    /** @var array */
+    public array $entryTypes = [];
 
 }
