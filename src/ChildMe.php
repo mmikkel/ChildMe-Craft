@@ -19,7 +19,6 @@ use craft\events\DefineAttributeHtmlEvent;
 use craft\events\RegisterElementTableAttributesEvent;
 use craft\events\TemplateEvent;
 use craft\helpers\Cp;
-use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\Section;
