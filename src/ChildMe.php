@@ -18,6 +18,8 @@ use craft\elements\Category;
 use craft\events\DefineAttributeHtmlEvent;
 use craft\events\RegisterElementTableAttributesEvent;
 use craft\events\TemplateEvent;
+use craft\helpers\Cp;
+use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\models\EntryType;
 use craft\models\Section;
@@ -193,6 +195,8 @@ class ChildMe extends Plugin
                     'typeId' => $entryType->id,
                 ]),
                 'label' => $entryType->name,
+                'icon' => !empty($entryType->icon) ? Cp::iconSvg($entryType->icon) : null,
+                'color' => !empty($entryType->color) ? $entryType->color : null,
             ];
         }, $entryTypes);
 

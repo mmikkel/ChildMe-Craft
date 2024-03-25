@@ -22,13 +22,24 @@
         >
             <craft-tooltip>{{ 'New child'|t('app') }}</craft-tooltip>
         </button>
-        <div id="childme-menu-{{ element.id }}" class="menu menu--disclosure">
+        <div id="childme-menu-{{ element.id }}" class="childme-menu menu menu--disclosure">
             <ul>
                 {% for link in links %}
                     <li>
-                        <a href="{{ link.url }}"
-                           data-icon="plus"
-                        >{{ link.label }}</a>
+                        {% tag 'a' with {
+                            href: link.url,
+                            class: 'flex',
+                            style: link.color|default ? {
+                                '--custom-bg-color': link.color.cssVar(50)|default(false),
+                                '--custom-text-color': link.color.cssVar(900)|default(false),
+                                '--custom-sel-bg-color': link.color.cssVar(100)|default(false)
+                            } : false
+                        } %}
+                            {% if link.icon %}
+                                <span class="cp-icon small{{ link.color is defined ? " #{link.color.value}" }}">{{ link.icon|raw }}</span>
+                            {% endif %}
+                            {{ link.label }}
+                        {% endtag %}
                     </li>
                 {% endfor %}
             </ul>
@@ -39,10 +50,17 @@
             color: var(--link-color);
             background-color: transparent;
             height: auto;
-            padding: 0;
+            padding: 6px;
         }
         .childme-button::before {
             margin: 0 !important;
+        }
+        .childme-menu li a {
+            background-color: var(--custom-bg-color) !important;
+            color: var(--custom-text-color, var(--link-color)) !important;
+        }
+        .childme-menu li a:hover {
+            background-color: var(--custom-sel-bg-color, var(--custom-bg-color)) !important;
         }
         .modal .elements .tableview th[data-attribute="_childme_addChild"],
         .modal .elements .tableview td[data-attr="_childme_addChild"] {
