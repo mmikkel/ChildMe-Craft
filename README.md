@@ -19,7 +19,7 @@ Child Me! works by adding the "New child" element index attribute to a structure
 
 To add the attribute, click the "Customize sources" disclosure menu toggle below your element sources in the left-side panel, then select the appropriate section and finally check the "New child" attribute.
 
-![Customize sources button](customize-sources.png)
+![Customize sources button](resources/img/customize-sources.png)
 
 ### Events
 
