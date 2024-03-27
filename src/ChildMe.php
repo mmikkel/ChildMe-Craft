@@ -50,7 +50,7 @@ class ChildMe extends Plugin
         parent::init();
 
         $request = Craft::$app->getRequest();
-        if (!$request->getIsCpRequest() || $request->getIsConsoleRequest() || $request->getIsLoginRequest()) {
+        if (!$request->getIsCpRequest() || $request->getIsLoginRequest()) {
             return;
         }
 
