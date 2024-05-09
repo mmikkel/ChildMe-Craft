@@ -8,9 +8,8 @@
            class="childme-button{{ hidden ? ' hidden' }}"
            data-icon="plus"
            aria-label="{{ 'New child'|t('app') }}"
-        >
-            <craft-tooltip>{{ 'New child'|t('app') }}</craft-tooltip>
-        </a>
+           title="{{ 'New child'|t('app') }}"
+        ></a>
     {% else %}
         {# Create a disclosure menu, but neglect to add the [data-disclosure-trigger] attribute to, essentially, lazy-load the menu; otherwise Craft would create a 100 of these on pageload #}
         <button type="button"
@@ -19,9 +18,8 @@
                 aria-controls="childme-menu-{{ element.id }}"
                 aria-expanded="false"
                 aria-label="{{ 'New child'|t('app') }}"
-        >
-            <craft-tooltip>{{ 'New child'|t('app') }}</craft-tooltip>
-        </button>
+                title="{{ 'New child'|t('app') }}"
+        ></button>
         <div id="childme-menu-{{ element.id }}" class="childme-menu menu menu--disclosure">
             <ul>
                 {% for link in links %}
@@ -35,8 +33,14 @@
                                 '--custom-sel-bg-color': link.color.cssVar(100)|default(false)
                             } : false
                         } %}
-                            {% if link.icon %}
-                                <span class="cp-icon small{{ link.color is defined ? " #{link.color.value}" }}">{{ link.icon|raw }}</span>
+                            {% if link.icon|default %}
+                                {{ tag('span', {
+                                    html: link.icon,
+                                    class: [
+                                        'cp-icon small',
+                                        link.color.value|default
+                                    ]
+                                }) }}
                             {% endif %}
                             {{ link.label }}
                         {% endtag %}

@@ -80,7 +80,7 @@ class ChildMe extends Plugin
             Event::on(
                 $elementClass,
                 Element::EVENT_DEFINE_ATTRIBUTE_HTML,
-                function (DefineAttributeHtmlEvent $event) use ($elementClass) {
+                function (DefineAttributeHtmlEvent $event) {
                     if ($event->attribute !== '_childme_addChild') {
                         return;
                     }
