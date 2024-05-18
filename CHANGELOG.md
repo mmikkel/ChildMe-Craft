@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.2.0 - 2024-05-18
+### Changed 
+- Setting the `EVENT_DEFINE_ENTRY_TYPES::$entryTypes` attribute to an empty array now results in the "New child" button not being rendered, instead of defaulting to the current entry's entry type.  
+
 ## 2.1.0 - 2024-05-09
 ### Fixed 
 - Fixed a bug that prevented the "New child" button from appearing in certain situations

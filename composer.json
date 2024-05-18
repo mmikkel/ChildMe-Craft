@@ -2,7 +2,7 @@
     "name": "mmikkel/child-me",
     "description": "Easily create child elements",
     "type": "craft-plugin",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "keywords": [
         "craft",
         "cms",

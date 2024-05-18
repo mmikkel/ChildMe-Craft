@@ -176,14 +176,14 @@ class ChildMe extends Plugin
             $entryTypesEvent = new DefineEntryTypesEvent([
                 'entry' => $entry,
                 'section' => $section->handle,
-                'entryTypes' => $section->getEntryTypes(),
+                'entryTypes' => $entryTypes,
             ]);
             $this->trigger(self::EVENT_DEFINE_ENTRY_TYPES, $entryTypesEvent);
-            $entryTypes = array_values($entryTypesEvent->entryTypes ?? []);
+            $entryTypes = array_values($entryTypesEvent->entryTypes);
         }
 
         if (empty($entryTypes)) {
-            $entryTypes = [$entry->getType()];
+            return '';
         }
 
         $links = array_map(static function (EntryType $entryType) use ($entry, $section) {
