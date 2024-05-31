@@ -5,7 +5,7 @@
 {% if links and element %}
     {% if links|length == 1 %}
         <a href="{{ links[0].url }}"
-           class="childme-button{{ hidden ? ' hidden' }}"
+           class="childme-button btn{{ hidden ? ' hidden' }}"
            data-icon="plus"
            aria-label="{{ 'New child'|t('app') }}"
            title="{{ 'New child'|t('app') }}"
