@@ -190,7 +190,7 @@ class ChildMe extends Plugin
             return [
                 'url' => UrlHelper::cpUrl("entries/$section->handle/new", [
                     'site' => $entry->getSite()?->handle,
-                    'parentId' => $entry->id,
+                    'parentId' => $entry->canonicalId,
                     'typeId' => $entryType->id,
                 ]),
                 'label' => $entryType->name,
@@ -233,7 +233,7 @@ class ChildMe extends Plugin
                 'links' => [[
                     'url' => UrlHelper::cpUrl("categories/$group->handle/new", [
                         'site' => $category->getSite()?->handle,
-                        'parentId' => $category->id,
+                        'parentId' => $category->canonicalId,
                     ])
                 ]],
                 'element' => $category,

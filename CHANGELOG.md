@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.2.2 - 2024-06-10
+### Fixed
+- Fixed an incompatibility issue with Craft 5.2, which could trigger a PHP exception when attempting to create a new child for "Edited" elements  
+
 ## 2.2.1 - 2024-05-31
 ### Fixed
 - Fixed a misalignment issue with "New child" buttons in element index columns  
