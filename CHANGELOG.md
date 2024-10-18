@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.2.3 - 2024-10-18
+### Fixed
+- Fixed a bug where Child Me! would not translate entry type names in the "New child" disclosure menu.  
+
 ## 2.2.2 - 2024-06-10
 ### Fixed
 - Fixed an incompatibility issue with Craft 5.2, which could trigger a PHP exception when attempting to create a new child for "Edited" elements  

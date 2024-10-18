@@ -193,7 +193,7 @@ class ChildMe extends Plugin
                     'parentId' => $entry->canonicalId,
                     'typeId' => $entryType->id,
                 ]),
-                'label' => $entryType->name,
+                'label' => Craft::t('site', $entryType->name),
                 'icon' => !empty($entryType->icon) ? Cp::iconSvg($entryType->icon) : null,
                 'color' => !empty($entryType->color) ? $entryType->color : null,
             ];
